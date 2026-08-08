@@ -1,0 +1,64 @@
+name: Compiler l'APK The Forge
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Décompresser le projet
+        run: |
+          unzip -q forge-source.zip -d .
+          ls -la
+
+      - name: Installer Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Installer Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Installer le SDK Android
+        uses: android-actions/setup-android@v3
+
+      - name: Installer les dépendances
+        run: npm install
+
+      - name: Synchroniser Capacitor
+        run: npx cap sync android
+
+      - name: Rendre gradlew exécutable
+        run: chmod +x android/gradlew
+
+      - name: Compiler l'APK
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Préparer l'APK
+        run: |
+          mkdir -p dist-apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk \
+             dist-apk/the-forge-v${{ github.run_number }}.apk
+
+      - name: Publier la Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "v${{ github.run_number }}" \
+            dist-apk/the-forge-v${{ github.run_number }}.apk \
+            --title "The Forge v${{ github.run_number }}" \
+            --notes "APK compilé automatiquement." \
+            --latest

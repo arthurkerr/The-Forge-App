@@ -38,6 +38,12 @@ jobs:
           p.write_text(s,encoding='utf-8')
           print('Version Fold8 : thème et stockage existants conservés, HTML',len(s),'caractères')
           PY
+      - name: Ajouter les visuels complémentaires hors ligne
+        run: |
+          mkdir -p www/images
+          cp fold8/images/forge-exercises-atlas.webp www/images/forge-exercises-atlas.webp
+          python3 fold8/enable-images.py
+          test -s www/images/forge-exercises-atlas.webp
       - name: Node 22
         uses: actions/setup-node@v4
         with:
@@ -68,14 +74,14 @@ jobs:
           changed={'versionCode':0,'versionName':0}
           for i,line in enumerate(lines):
               if line.strip().startswith('versionCode '):
-                  lines[i]='        versionCode 25'
+                  lines[i]='        versionCode 26'
                   changed['versionCode']+=1
               elif line.strip().startswith('versionName '):
-                  lines[i]='        versionName "1.25-fold8-clavier"'
+                  lines[i]='        versionName "1.26-fold8-images"'
                   changed['versionName']+=1
           assert changed=={'versionCode':1,'versionName':1},changed
           p.write_text('\n'.join(lines)+'\n')
-          print('Numéro de version Android : 25')
+          print('Numéro de version Android : 26')
           PY
       - name: Compiler APK avec la clé existante The Forge
         run: |
@@ -89,12 +95,12 @@ jobs:
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK" | head -15
           BADGING=$("$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | grep -m1 '^package:')
           echo "$BADGING"
-          [[ "$BADGING" == *"name='com.arthurkerr.theforge' versionCode='25'"* ]] || { echo "::error::Version ou package inattendu"; exit 1; }
+          [[ "$BADGING" == *"name='com.arthurkerr.theforge' versionCode='26'"* ]] || { echo "::error::Version ou package inattendu"; exit 1; }
           sha256sum "$APK"
       - name: Télécharger APK de validation
         uses: actions/upload-artifact@v4
         with:
-          name: the-forge-v25-fold8-profil-clavier
+          name: the-forge-v26-fold8-images
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
           if-no-files-found: error

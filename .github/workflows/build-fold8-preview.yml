@@ -1,4 +1,4 @@
-name: Tester The Forge sur Galaxy Fold8
+name: Tester The Forge Fold8 et clavier Samsung
 on:
   push:
     branches: [fold8-ergonomie]
@@ -27,6 +27,11 @@ jobs:
           p=Path('www/index.html')
           s=p.read_text(encoding='utf-8')
           css=Path('fold8/mobile.css').read_text(encoding='utf-8')
+          # Android réduit la hauteur du viewport lors de l'ouverture du clavier.
+          # Sans garde sur la largeur, le CSS paysage déplace le Profil à droite.
+          bad='@media (orientation:landscape) and (max-height:540px){'
+          assert s.count(bad) == 1
+          s=s.replace(bad,'@media (orientation:landscape) and (min-width:700px) and (max-height:540px){',1)
           assert s.count('</style>') == 1
           assert 'forge-v1' in s
           s=s.replace('</style>', '\n/* Adaptation Galaxy Fold8 */\n'+css+'\n</style>',1)
@@ -53,7 +58,7 @@ jobs:
         run: |
           npm ci || npm install
           npx cap sync android
-      - name: Fixer explicitement la version Android 24
+      - name: Fixer explicitement la version Android 25
         shell: bash
         run: |
           python3 - <<'PY'
@@ -63,14 +68,14 @@ jobs:
           changed={'versionCode':0,'versionName':0}
           for i,line in enumerate(lines):
               if line.strip().startswith('versionCode '):
-                  lines[i]='        versionCode 24'
+                  lines[i]='        versionCode 25'
                   changed['versionCode']+=1
               elif line.strip().startswith('versionName '):
-                  lines[i]='        versionName "1.24-fold8"'
+                  lines[i]='        versionName "1.25-fold8-clavier"'
                   changed['versionName']+=1
           assert changed=={'versionCode':1,'versionName':1},changed
           p.write_text('\n'.join(lines)+'\n')
-          print('Numéro de version Android : 24')
+          print('Numéro de version Android : 25')
           PY
       - name: Compiler APK avec la clé existante The Forge
         run: |
@@ -84,12 +89,12 @@ jobs:
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK" | head -15
           BADGING=$("$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | grep -m1 '^package:')
           echo "$BADGING"
-          [[ "$BADGING" == *"name='com.arthurkerr.theforge' versionCode='24'"* ]] || { echo "::error::Version ou package inattendu"; exit 1; }
+          [[ "$BADGING" == *"name='com.arthurkerr.theforge' versionCode='25'"* ]] || { echo "::error::Version ou package inattendu"; exit 1; }
           sha256sum "$APK"
       - name: Télécharger APK de validation
         uses: actions/upload-artifact@v4
         with:
-          name: the-forge-v24-fold8-preview
+          name: the-forge-v25-fold8-profil-clavier
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
           if-no-files-found: error

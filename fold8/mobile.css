@@ -2,7 +2,7 @@
 button:focus-visible,.chip:focus-visible,.cal-day:focus-visible,input:focus-visible,select:focus-visible{
   outline:2px solid var(--gold);outline-offset:2px;
 }
-@media (max-width:480px) and (orientation:portrait){
+@media (max-width:600px){
   :root{ --pad:12px;--nav-h:calc(70px + env(safe-area-inset-bottom,0px)) }
   .app-hdr{padding-left:14px;padding-right:14px;padding-top:calc(8px + env(safe-area-inset-top,0px))}
   .wordmark{gap:7px;min-width:0}
@@ -42,7 +42,7 @@ button:focus-visible,.chip:focus-visible,.cal-day:focus-visible,input:focus-visi
   .run-actions{gap:8px}
   textarea,input,select{scroll-margin-bottom:115px}
 }
-@media (max-width:375px) and (orientation:portrait){
+@media (max-width:375px){
   .exo-list{gap:8px}
   .exo-card{min-height:145px;padding:10px 8px}
   .exo-card h3{font-size:12.5px}
@@ -55,4 +55,18 @@ button:focus-visible,.chip:focus-visible,.cal-day:focus-visible,input:focus-visi
   .exo-card{min-height:154px}
   .exo-card h3{font-size:14px}
   .exo-card .card-art{opacity:.64}
+}
+
+/* Correctif clavier Samsung Fold8 : la réduction de hauteur ne doit pas
+   déclencher la grille paysage ni comprimer les champs du profil. */
+@media (max-width:600px){
+  #page-reglages.active{display:block;min-width:0}
+  #page-reglages .prof-form{display:flex;flex-direction:column;gap:12px;width:100%;min-width:0}
+  #page-reglages .prof-form .pf-row{display:flex;width:100%;min-width:0;gap:10px}
+  #page-reglages .prof-form .pf-row .fld{flex:1 1 0;min-width:0}
+  #page-reglages .prof-form .pf-row input,
+  #page-reglages .prof-form .pf-row select{display:block;min-width:0;width:100%;font-size:16px;min-height:44px}
+  #page-reglages .prof-form .pf-row label{font-size:10.5px;line-height:1.35;white-space:normal;overflow-wrap:anywhere;letter-spacing:.025em}
+  #page-reglages #companion{max-width:100%;min-width:0}
+  .nav{position:fixed;left:0;right:0;top:auto;bottom:0;width:100%;height:var(--nav-h);flex-direction:row;justify-content:space-around;border-right:0;border-top:1px solid var(--line);padding-left:0}
 }

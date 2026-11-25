@@ -59,46 +59,18 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           p=Path('android/app/build.gradle')
-          s=p.read_text()
-          import re
-          s,n=re.subn(r'^\s*versionCode\s+.*
-      - name: Vérifier signature et identifiant
-        shell: bash
-        run: |
-          APK=android/app/build/outputs/apk/debug/app-debug.apk
-          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK" | head -15
-          BADGING=$("$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | grep -m1 '^package:')
-          echo "$BADGING"
-          [[ "$BADGING" == *"name='com.arthurkerr.theforge' versionCode='24'"* ]] || { echo "::error::Version ou package inattendu"; exit 1; }
-          sha256sum "$APK"
-      - name: Télécharger APK de validation
-        uses: actions/upload-artifact@v4
-        with:
-          name: the-forge-v24-fold8-preview
-          path: android/app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 30
-          if-no-files-found: error
-, '        versionCode 24',s,flags=re.M)
-          assert n==1, 'Champ versionCode introuvable'
-          s,n=re.subn(r'^\s*versionName\s+.*
-      - name: Vérifier signature et identifiant
-        shell: bash
-        run: |
-          APK=android/app/build/outputs/apk/debug/app-debug.apk
-          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK" | head -15
-          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | grep -m1 '^package:'
-          sha256sum "$APK"
-      - name: Télécharger APK de validation
-        uses: actions/upload-artifact@v4
-        with:
-          name: the-forge-v24-fold8-preview
-          path: android/app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 30
-          if-no-files-found: error
-, '        versionName "1.24-fold8"',s,flags=re.M)
-          assert n==1, 'Champ versionName introuvable'
-          p.write_text(s)
-          print('Version Android appliquée : 24')
+          lines=p.read_text().splitlines()
+          changed={'versionCode':0,'versionName':0}
+          for i,line in enumerate(lines):
+              if line.strip().startswith('versionCode '):
+                  lines[i]='        versionCode 24'
+                  changed['versionCode']+=1
+              elif line.strip().startswith('versionName '):
+                  lines[i]='        versionName "1.24-fold8"'
+                  changed['versionName']+=1
+          assert changed=={'versionCode':1,'versionName':1},changed
+          p.write_text('\n'.join(lines)+'\n')
+          print('Numéro de version Android : 24')
           PY
       - name: Compiler APK avec la clé existante The Forge
         run: |
@@ -110,7 +82,9 @@ jobs:
         run: |
           APK=android/app/build/outputs/apk/debug/app-debug.apk
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK" | head -15
-          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | grep -m1 '^package:'
+          BADGING=$("$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | grep -m1 '^package:')
+          echo "$BADGING"
+          [[ "$BADGING" == *"name='com.arthurkerr.theforge' versionCode='24'"* ]] || { echo "::error::Version ou package inattendu"; exit 1; }
           sha256sum "$APK"
       - name: Télécharger APK de validation
         uses: actions/upload-artifact@v4

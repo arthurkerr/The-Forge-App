@@ -1,0 +1,58 @@
+/* The Forge / Fold8 : ajustements visuels sans modification des fonctions. */
+button:focus-visible,.chip:focus-visible,.cal-day:focus-visible,input:focus-visible,select:focus-visible{
+  outline:2px solid var(--gold);outline-offset:2px;
+}
+@media (max-width:480px) and (orientation:portrait){
+  :root{ --pad:12px;--nav-h:calc(70px + env(safe-area-inset-bottom,0px)) }
+  .app-hdr{padding-left:14px;padding-right:14px;padding-top:calc(8px + env(safe-area-inset-top,0px))}
+  .wordmark{gap:7px;min-width:0}
+  .wordmark h1{font-size:20px;letter-spacing:.11em;flex-shrink:0}
+  .wordmark small{font-size:10.5px;letter-spacing:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .page{padding-left:12px;padding-right:12px;padding-bottom:calc(var(--nav-h) + 24px)}
+  .nav{height:var(--nav-h)}
+  .nav button{min-width:0;min-height:56px;gap:4px;font-size:10px}
+  .nav svg{width:24px;height:24px}
+  .searchbox input{min-height:46px;font-size:16px}
+  .chip{min-height:38px;display:inline-flex;align-items:center;font-size:13.5px;padding:7px 12px}
+  .selects select{min-height:44px;font-size:14px}
+  .exo-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .exo-card{min-height:156px;padding:12px 10px 11px;align-items:flex-start;justify-content:flex-end;text-align:left;gap:6px}
+  .exo-card h3{font-size:13.5px;line-height:1.27;font-weight:750;letter-spacing:-.01em;margin-top:auto}
+  .exo-card .exo-g{font-size:11px;line-height:1.2;margin-top:0}
+  .exo-card .exo-ico{position:absolute;top:11px;left:10px;width:33px;height:33px}
+  .exo-card.illus .exo-ico{top:9px;right:9px;left:auto;width:30px;height:30px;background:rgba(15,13,28,.76)}
+  .exo-card.illus .card-art{opacity:1;filter:brightness(1.22) saturate(1.12);
+    -webkit-mask-image:linear-gradient(to bottom,#000 4%,rgba(0,0,0,.95) 38%,transparent 91%);
+    mask-image:linear-gradient(to bottom,#000 4%,rgba(0,0,0,.95) 38%,transparent 91%)}
+  .exo-card.illus h3{font-weight:770;text-shadow:0 1px 5px #090912,0 1px 9px #090912}
+  .exo-card.illus .exo-g{text-shadow:0 1px 4px #090912}
+  .cal-day{min-height:42px}
+  .btn{min-height:48px}
+  .sess-card{min-height:75px}
+  .sheet{max-height:90dvh;padding-bottom:calc(28px + env(safe-area-inset-bottom,0px))}
+  .exo-hero{height:185px}
+  .runner{padding:calc(9px + env(safe-area-inset-top,0px)) 12px calc(14px + env(safe-area-inset-bottom,0px))}
+  .run-top .rt{letter-spacing:.08em}
+  .run-row{gap:7px}
+  .run-row .btn{min-width:0;padding:12px 8px;font-size:13.5px;overflow-wrap:anywhere}
+  .run-inputs{gap:8px}
+  .run-inputs input{padding:12px 8px;font-size:19px}
+  .main-card{padding:12px}
+  .stats-bar{padding:10px;gap:8px}
+  .run-actions{gap:8px}
+  textarea,input,select{scroll-margin-bottom:115px}
+}
+@media (max-width:375px) and (orientation:portrait){
+  .exo-list{gap:8px}
+  .exo-card{min-height:145px;padding:10px 8px}
+  .exo-card h3{font-size:12.5px}
+  .cal-day{min-height:38px}
+  .nav button{font-size:9.5px}
+}
+@media (min-width:700px) and (orientation:portrait){
+  .page{max-width:1100px;margin:0 auto}
+  .exo-list{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+  .exo-card{min-height:154px}
+  .exo-card h3{font-size:14px}
+  .exo-card .card-art{opacity:.64}
+}

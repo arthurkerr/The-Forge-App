@@ -1,0 +1,106 @@
+name: Tester The Forge Fold8 et clavier Samsung
+on:
+  push:
+    branches: [fold8-ergonomie]
+    paths:
+      - 'fold8/**'
+      - '.github/workflows/build-fold8-preview.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    name: APK de validation Fold8
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Décompresser la source v23
+        shell: bash
+        run: unzip -q forge-source.zip -d .
+      - name: Appliquer l'optimisation Fold8
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('www/index.html')
+          s=p.read_text(encoding='utf-8')
+          css=Path('fold8/mobile.css').read_text(encoding='utf-8')
+          # Android réduit la hauteur du viewport lors de l'ouverture du clavier.
+          # Sans garde sur la largeur, le CSS paysage déplace le Profil à droite.
+          bad='@media (orientation:landscape) and (max-height:540px){'
+          assert s.count(bad) == 1
+          s=s.replace(bad,'@media (orientation:landscape) and (min-width:700px) and (max-height:540px){',1)
+          assert s.count('</style>') == 1
+          assert 'forge-v1' in s
+          s=s.replace('</style>', '\n/* Adaptation Galaxy Fold8 */\n'+css+'\n</style>',1)
+          p.write_text(s,encoding='utf-8')
+          print('Version Fold8 : thème et stockage existants conservés, HTML',len(s),'caractères')
+          PY
+      - name: Ajouter les visuels complémentaires hors ligne
+        run: |
+          mkdir -p www/images
+          cp fold8/images/forge-exercises-atlas.webp www/images/forge-exercises-atlas.webp
+          python3 fold8/enable-images.py
+          test -s www/images/forge-exercises-atlas.webp
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Android SDK
+        shell: bash
+        run: |
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -1)"
+          if [[ -z "$SDKMANAGER" ]]; then echo "Android SDK manquant"; exit 1; fi
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" "platforms;android-36" "build-tools;35.0.0" || true
+      - name: Installer dépendances et synchroniser Capacitor
+        run: |
+          npm ci || npm install
+          npx cap sync android
+      - name: Fixer explicitement la version Android 25
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('android/app/build.gradle')
+          lines=p.read_text().splitlines()
+          changed={'versionCode':0,'versionName':0}
+          for i,line in enumerate(lines):
+              if line.strip().startswith('versionCode '):
+                  lines[i]='        versionCode 26'
+                  changed['versionCode']+=1
+              elif line.strip().startswith('versionName '):
+                  lines[i]='        versionName "1.26-fold8-images"'
+                  changed['versionName']+=1
+          assert changed=={'versionCode':1,'versionName':1},changed
+          p.write_text('\n'.join(lines)+'\n')
+          print('Numéro de version Android : 26')
+          PY
+      - name: Compiler APK avec la clé existante The Forge
+        run: |
+          chmod +x android/gradlew
+          cd android
+          ./gradlew assembleDebug --no-daemon --stacktrace
+      - name: Vérifier signature et identifiant
+        shell: bash
+        run: |
+          APK=android/app/build/outputs/apk/debug/app-debug.apk
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK" | head -15
+          BADGING=$("$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | grep -m1 '^package:')
+          echo "$BADGING"
+          [[ "$BADGING" == *"name='com.arthurkerr.theforge' versionCode='26'"* ]] || { echo "::error::Version ou package inattendu"; exit 1; }
+          sha256sum "$APK"
+      - name: Télécharger APK de validation
+        uses: actions/upload-artifact@v4
+        with:
+          name: the-forge-v26-fold8-images
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
+          if-no-files-found: error

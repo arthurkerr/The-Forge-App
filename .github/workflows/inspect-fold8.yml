@@ -1,0 +1,38 @@
+name: Examiner les sources Forge v23 pour Fold8
+on:
+  push:
+    branches: [fold8-ergonomie]
+    paths: ['.github/workflows/inspect-fold8.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+      - name: Extraire le projet de l'archive v23
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/forge-v23"
+          unzip -q forge-source.zip -d "$RUNNER_TEMP/forge-v23"
+          find "$RUNNER_TEMP/forge-v23" -maxdepth 3 -type f | head -100
+          du -sh "$RUNNER_TEMP/forge-v23"
+      - name: Préparer une archive source pour la revue Fold8
+        shell: bash
+        run: |
+          cd "$RUNNER_TEMP/forge-v23"
+          zip -q -r "$RUNNER_TEMP/forge-v23-review.zip" . \
+            -x "*/node_modules/*" "*/.gradle/*" "*/build/*" \
+               "*/.git/*" "*/.idea/*" "*/android/.gradle/*"
+          ls -lh "$RUNNER_TEMP/forge-v23-review.zip"
+      - name: Transmettre les sources à la revue
+        uses: actions/upload-artifact@v4
+        with:
+          name: forge-v23-source-review
+          path: ${{ runner.temp }}/forge-v23-review.zip
+          retention-days: 7
+          if-no-files-found: error
